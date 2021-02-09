@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NetGame
+namespace GameNetwork
 {
     public class Datagram
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NetGame
+namespace GameNetwork
 {
     /// <summary>
     /// Communication and Commands protocol
