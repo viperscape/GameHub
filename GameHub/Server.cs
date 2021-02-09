@@ -12,7 +12,7 @@ namespace GameNetwork
     {
         private int port;
 
-        public Dictionary<ushort, RemotePlayer> players;
+        public Dictionary<ushort, NetPlayer> players;
 
         public Stopwatch stopwatch { get; private set; }
 
@@ -23,7 +23,7 @@ namespace GameNetwork
         public Server(int port_)
         {
             port = port_;
-            players = new Dictionary<ushort, RemotePlayer>();
+            players = new Dictionary<ushort, NetPlayer>();
             stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -33,7 +33,7 @@ namespace GameNetwork
 
         void LinkPlayer(IPEndPoint remote, Datagram datagram)
         {
-            RemotePlayer player;
+            NetPlayer player;
             if (players.TryGetValue(datagram.playerId, out player))
             {
                 player.datagrams.Enqueue(datagram);
@@ -42,7 +42,7 @@ namespace GameNetwork
             {
                 foreach (var p in players.Values)
                 {
-                    if (remote.Equals(p.Endpoint))
+                    if (remote.Equals(p.endpoint))
                     {
                         p.datagrams.Enqueue(datagram);
                         return;
@@ -53,19 +53,9 @@ namespace GameNetwork
                 while (!added)
                 {
                     ushort id = (ushort)rand.Next(65000);
-                    player = new RemotePlayer(id, remote);
+                    player = new NetPlayer(id, remote, unreliable);
                     added = players.TryAdd(id, player);
                 }
-            }
-        }
-
-
-        public async Task WritePlayer(ushort id, byte[] data, bool reliable = true)
-        {
-            RemotePlayer player;
-            if (players.TryGetValue(id, out player))
-            {
-                await player.Write(data, (uint) stopwatch.ElapsedMilliseconds, unreliable);
             }
         }
     }

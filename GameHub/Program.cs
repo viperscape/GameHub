@@ -54,18 +54,18 @@ namespace GameNetwork
                             Console.WriteLine("request id...");
                             Message msg_ = new Message(Comm.RequestId);
                             msg_.AddUShort(player.id);
-                            await server.WritePlayer(player.id, msg_.GetRaw());
+                            await player.Write(msg_);
                         }
                         else if (msg.kind == Comm.Ping)
                         {
                             Message msg_ = new Message(Comm.Pong);
                             msg_.AddInt(msg.GetInt());
-                            await server.WritePlayer(player.id, msg_.GetRaw());
+                            await player.Write(msg_);
                         }
                         else if (msg.kind == Comm.RequestGameAreas)
                         {
                             Message msg_ = GetRawGameAreas();
-                            await server.WritePlayer(player.id, msg_.GetRaw());
+                            await player.Write(msg_);
                         }
                         else if (msg.kind == Comm.JoinGameArea)
                         {
@@ -77,26 +77,26 @@ namespace GameNetwork
                             {
                                 foreach (var id in ids)
                                 {
-                                    RemotePlayer p;
+                                    NetPlayer p;
                                     server.players.TryGetValue(id, out p);
                                     if (p != null)
                                     {
                                         Message msg_ = new Message(Comm.BrokerNewMember);
-                                        if (p.Endpoint != null) // grab all upd connections and share with new player
+                                        if (p.endpoint != null) // grab all upd connections and share with new player
                                         {
                                             msg_.AddUShort(p.id);
-                                            msg_.AddString(p.Endpoint.Address.ToString());
-                                            msg_.AddInt(p.Endpoint.Port);
-                                            await server.WritePlayer(player.id, msg_.GetRaw());
+                                            msg_.AddString(p.endpoint.Address.ToString());
+                                            msg_.AddInt(p.endpoint.Port);
+                                            await player.Write(msg_);
                                         } // we should dump players without established udp endpoints
 
-                                        if (player.Endpoint != null) // share new player udp with all existing players
+                                        if (player.endpoint != null) // share new player udp with all existing players
                                         {
                                             msg_ = new Message(Comm.BrokerNewMember);
                                             msg_.AddUShort(player.id);
-                                            msg_.AddString(player.Endpoint.Address.ToString());
-                                            msg_.AddInt(player.Endpoint.Port);
-                                            await server.WritePlayer(p.id, msg_.GetRaw());
+                                            msg_.AddString(player.endpoint.Address.ToString());
+                                            msg_.AddInt(player.endpoint.Port);
+                                            await player.Write(msg_);
                                         }
                                     }
                                 }
