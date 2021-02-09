@@ -12,7 +12,7 @@ namespace GameNetwork
         static string host = "localhost"; //"44.234.72.181";
         static async Task Main(string[] args)
         {
-            await TestClient(15);
+            await TestClient();
         }
 
         static async Task KeepUDPAlive(LocalPlayer player)
@@ -29,26 +29,30 @@ namespace GameNetwork
 
             try
             {
-                LocalPlayer player = new LocalPlayer();
-                await player.StartClient(host, port);
-
-                await Task.Delay(150);
-                Message msg = new Message(Comm.JoinGameArea);
-                msg.AddString("test");
+                LocalPlayer player = new LocalPlayer(host, port);
+                Message msg = new Message(Comm.RequestId);
                 await player.Write(msg.GetRaw());
-
-                await KeepUDPAlive(player);
                 player.BeginUnreliable();
-                await Task.Delay(150);
-                while (player.isConnected())
+
+                while (true)
                 {
                     await KeepUDPAlive(player);
+
+                    msg = new Message(Comm.RequestId);
+                    await player.Write(msg.GetRaw());
+
                     List<Datagram> datagrams = player.GetDatagrams();
                     foreach (var datagram in datagrams)
                     {
                         msg = new Message(datagram.data);
+                        if (msg.kind == Comm.Empty) continue;
+                        Console.WriteLine(msg.kind);
                         if (msg.kind == Comm.Text)
                             Console.WriteLine("MSG {0} {1}", datagram.playerId, msg.GetString());
+                        else if (msg.kind == Comm.RequestId)
+                        {
+                            player.id = msg.GetUShort();
+                        }
                         else if (msg.kind == Comm.GameAreasList)
                         {
                             int count = msg.GetInt();
@@ -84,8 +88,6 @@ namespace GameNetwork
 
                     await Task.Delay(50); // wait for 20 pps roughly
                 }
-
-                player.Shutdown();
             }
             catch (Exception e)
             {

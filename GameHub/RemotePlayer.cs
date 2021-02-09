@@ -9,20 +9,19 @@ namespace GameNetwork
 {
     class RemotePlayer : NetPlayer
     {
-        public IPEndPoint udpEndpoint { get; set; }
+        public IPEndPoint Endpoint { get; set; }
 
 
-        public RemotePlayer(TcpClient client_, ushort id_) // server based creation
+        public RemotePlayer(ushort id_, IPEndPoint ep) // server based creation
         {
-            remote = client_;
             id = id_;
-            
+            Endpoint = ep;
         }
 
-        public async Task Write(byte[] data, uint time, Unreliable unreliable = null)
+        public async Task Write(byte[] data, uint time, Unreliable unreliable)
         {
             Datagram datagram = new Datagram(id, time, data);
-            await WriteDatagram(datagram, unreliable);
+            await WriteDatagram(datagram, unreliable, Endpoint);
         }
     }
 }

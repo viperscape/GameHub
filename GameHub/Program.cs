@@ -16,16 +16,8 @@ namespace GameNetwork
         static async Task Main(string[] args)
         {
             gameAreas = new Dictionary<string, List<ushort>>();
-
             server = new Server(port);
-            _ = HandleClients();
-            await server.Listen(OnConnect, OnDisonnect);
-        }
-
-        static async Task OnConnect(ushort id) // send all game areas listed
-        {
-            Message msg = GetRawGameAreas();
-            await server.WritePlayer(id, msg.GetRaw());
+            await HandleClients();
         }
 
         static Message GetRawGameAreas()
@@ -40,17 +32,6 @@ namespace GameNetwork
             return msg;
         }
 
-        static async Task OnDisonnect(ushort id)
-        {
-            Message msg = new Message(Comm.Quit);
-            msg.AddUShort(id);
-            foreach (var player in server.players.Values)
-            {
-                await server.WritePlayer(player.id, msg.GetRaw());
-            }
-
-        }
-
         static async Task HandleClients()
         {
             while (true)
@@ -61,10 +42,19 @@ namespace GameNetwork
                     foreach (var datagram in datagrams)
                     {
                         Message msg = new Message(datagram.data); // unwrap into a easy to use message type
+                        if (msg.kind == Comm.Empty) continue;
 
+                        Console.WriteLine(msg.kind);
                         if (msg.kind == Comm.Text)
                         {
                             Console.WriteLine("server msg {0} {1}", datagram.playerId, msg.GetString());
+                        }
+                        else if (msg.kind == Comm.RequestId)
+                        {
+                            Console.WriteLine("request id...");
+                            Message msg_ = new Message(Comm.RequestId);
+                            msg_.AddUShort(player.id);
+                            await server.WritePlayer(player.id, msg_.GetRaw());
                         }
                         else if (msg.kind == Comm.Ping)
                         {
@@ -92,20 +82,20 @@ namespace GameNetwork
                                     if (p != null)
                                     {
                                         Message msg_ = new Message(Comm.BrokerNewMember);
-                                        if (p.udpEndpoint != null) // grab all upd connections and share with new player
+                                        if (p.Endpoint != null) // grab all upd connections and share with new player
                                         {
                                             msg_.AddUShort(p.id);
-                                            msg_.AddString(p.udpEndpoint.Address.ToString());
-                                            msg_.AddInt(p.udpEndpoint.Port);
+                                            msg_.AddString(p.Endpoint.Address.ToString());
+                                            msg_.AddInt(p.Endpoint.Port);
                                             await server.WritePlayer(player.id, msg_.GetRaw());
                                         } // we should dump players without established udp endpoints
 
-                                        if (player.udpEndpoint != null) // share new player udp with all existing players
+                                        if (player.Endpoint != null) // share new player udp with all existing players
                                         {
                                             msg_ = new Message(Comm.BrokerNewMember);
                                             msg_.AddUShort(player.id);
-                                            msg_.AddString(player.udpEndpoint.Address.ToString());
-                                            msg_.AddInt(player.udpEndpoint.Port);
+                                            msg_.AddString(player.Endpoint.Address.ToString());
+                                            msg_.AddInt(player.Endpoint.Port);
                                             await server.WritePlayer(p.id, msg_.GetRaw());
                                         }
                                     }
@@ -120,14 +110,8 @@ namespace GameNetwork
                                 gameAreas.Add(area, li);
                             }
                         }
-                        else
-                        {
-                            foreach (var player_ in server.players.Values) // broadcasting to all players
-                            {
-                                //await server.WritePlayer(player_.id, datagram.data); // basic broadcast
-                            }
-                        }
 
+                        
                     }
                 }
 
