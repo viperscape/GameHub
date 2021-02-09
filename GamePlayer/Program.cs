@@ -9,7 +9,7 @@ namespace GameNetwork
     class Program
     {
         static int port = 7070;
-        static string host = "44.234.72.181";
+        static string host = "localhost"; //"44.234.72.181";
         static async Task Main(string[] args)
         {
             await TestClient(15);
