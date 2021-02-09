@@ -17,8 +17,8 @@ namespace GameNetwork
 
         static async Task KeepUDPAlive(LocalPlayer player)
         {
-            Comm comm = new Comm(Comm.Kind.Empty);
-            var data = comm.Serialize();
+            Message msg = new Message(Comm.Empty);
+            var data = msg.GetRaw();
             foreach (var k in player.players.Keys)
                 await player.Write(data, false, k);
         }
@@ -33,9 +33,9 @@ namespace GameNetwork
                 await player.StartClient(host, port);
 
                 await Task.Delay(150);
-                Comm comm = new Comm(Comm.Kind.JoinGameArea);
-                comm.message.AddString("test");
-                await player.Write(comm.Serialize());
+                Message msg = new Message(Comm.JoinGameArea);
+                msg.AddString("test");
+                await player.Write(msg.GetRaw());
 
                 await KeepUDPAlive(player);
                 player.BeginUnreliable();
@@ -46,33 +46,33 @@ namespace GameNetwork
                     List<Datagram> datagrams = player.GetDatagrams();
                     foreach (var datagram in datagrams)
                     {
-                        comm = new Comm(datagram.data);
-                        if (comm.kind == Comm.Kind.Text)
-                            Console.WriteLine("MSG {0} {1}", datagram.playerId, comm.message.GetString());
-                        else if (comm.kind == Comm.Kind.GameAreasList)
+                        msg = new Message(datagram.data);
+                        if (msg.kind == Comm.Text)
+                            Console.WriteLine("MSG {0} {1}", datagram.playerId, msg.GetString());
+                        else if (msg.kind == Comm.GameAreasList)
                         {
-                            int count = comm.message.GetInt();
+                            int count = msg.GetInt();
                             for (; count > 0; count--)
                             {
-                                string area = comm.message.GetString();
+                                string area = msg.GetString();
                                 Console.WriteLine("area {0}", area);
                             }
                         }
-                        else if (comm.kind == Comm.Kind.BrokerNewMember)
+                        else if (msg.kind == Comm.BrokerNewMember)
                         {
-                            ushort id = comm.message.GetUShort();
-                            string address = comm.message.GetString();
-                            int port = comm.message.GetInt();
+                            ushort id = msg.GetUShort();
+                            string address = msg.GetString();
+                            int port = msg.GetInt();
                             Console.WriteLine("udp endpoint {0} {1} {2}", id, address, port);
                             player.AddPeer(id, address, port);
                         }
-                        else if (comm.kind == Comm.Kind.Empty)
+                        else if (msg.kind == Comm.Empty)
                         {
                             Console.WriteLine("Empty {0} {1}", player.id, datagram.playerId);
                         }
-                        else if (comm.kind == Comm.Kind.Quit)
+                        else if (msg.kind == Comm.Quit)
                         {
-                            ushort id = comm.message.GetUShort();
+                            ushort id = msg.GetUShort();
                             player.players.Remove(id);
                         }
                         else

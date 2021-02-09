@@ -24,28 +24,29 @@ namespace GameNetwork
 
         static async Task OnConnect(ushort id) // send all game areas listed
         {
-            Comm comm = SerializeGameAreas();
-            await server.WritePlayer(id, comm.Serialize());
+            Message msg = GetRawGameAreas();
+            await server.WritePlayer(id, msg.GetRaw());
         }
 
-        static Comm SerializeGameAreas()
+        static Message GetRawGameAreas()
         {
-            Comm comm = new Comm(Comm.Kind.GameAreasList);
-            comm.message.AddInt(gameAreas.Count);
+            Message msg = new Message(Comm.GameAreasList);
+            msg.AddInt(gameAreas.Count);
             foreach (var area in gameAreas.Keys)
             {
-                comm.message.AddString(area);
+                msg.AddString(area);
             }
 
-            return comm;
+            return msg;
         }
 
         static async Task OnDisonnect(ushort id)
         {
-            Comm comm = new Comm(Comm.Kind.Quit, id);
+            Message msg = new Message(Comm.Quit);
+            msg.AddUShort(id);
             foreach (var player in server.players.Values)
             {
-                await server.WritePlayer(player.id, comm.message.GetRaw());
+                await server.WritePlayer(player.id, msg.GetRaw());
             }
 
         }
@@ -59,26 +60,26 @@ namespace GameNetwork
                     List<Datagram> datagrams = player.GetDatagrams();
                     foreach (var datagram in datagrams)
                     {
-                        Comm comm = new Comm(datagram.data); // unwrap into a easy to use message type
+                        Message msg = new Message(datagram.data); // unwrap into a easy to use message type
 
-                        if (comm.kind == Comm.Kind.Text)
+                        if (msg.kind == Comm.Text)
                         {
-                            Console.WriteLine("server msg {0} {1}", datagram.playerId, comm.message.GetString());
+                            Console.WriteLine("server msg {0} {1}", datagram.playerId, msg.GetString());
                         }
-                        else if (comm.kind == Comm.Kind.Ping)
+                        else if (msg.kind == Comm.Ping)
                         {
-                            Comm comm_ = new Comm(Comm.Kind.Pong);
-                            comm_.message.AddInt(comm.message.GetInt());
-                            await server.WritePlayer(player.id, comm_.Serialize());
+                            Message msg_ = new Message(Comm.Pong);
+                            msg_.AddInt(msg.GetInt());
+                            await server.WritePlayer(player.id, msg_.GetRaw());
                         }
-                        else if (comm.kind == Comm.Kind.RequestGameAreas)
+                        else if (msg.kind == Comm.RequestGameAreas)
                         {
-                            Comm comm_ = SerializeGameAreas();
-                            await server.WritePlayer(player.id, comm_.Serialize());
+                            Message msg_ = GetRawGameAreas();
+                            await server.WritePlayer(player.id, msg_.GetRaw());
                         }
-                        else if (comm.kind == Comm.Kind.JoinGameArea)
+                        else if (msg.kind == Comm.JoinGameArea)
                         {
-                            string area = comm.message.GetString();
+                            string area = msg.GetString();
                             Console.WriteLine("join request {0} {1}", datagram.playerId, area);
                             List<ushort> ids;
                             gameAreas.TryGetValue(area, out ids);
@@ -90,22 +91,22 @@ namespace GameNetwork
                                     server.players.TryGetValue(id, out p);
                                     if (p != null)
                                     {
-                                        Comm comm_ = new Comm(Comm.Kind.BrokerNewMember);
+                                        Message msg_ = new Message(Comm.BrokerNewMember);
                                         if (p.udpEndpoint != null) // grab all upd connections and share with new player
                                         {
-                                            comm_.message.AddUShort(p.id);
-                                            comm_.message.AddString(p.udpEndpoint.Address.ToString());
-                                            comm_.message.AddInt(p.udpEndpoint.Port);
-                                            await server.WritePlayer(player.id, comm_.Serialize());
+                                            msg_.AddUShort(p.id);
+                                            msg_.AddString(p.udpEndpoint.Address.ToString());
+                                            msg_.AddInt(p.udpEndpoint.Port);
+                                            await server.WritePlayer(player.id, msg_.GetRaw());
                                         } // we should dump players without established udp endpoints
 
                                         if (player.udpEndpoint != null) // share new player udp with all existing players
                                         {
-                                            comm_ = new Comm(Comm.Kind.BrokerNewMember);
-                                            comm_.message.AddUShort(player.id);
-                                            comm_.message.AddString(player.udpEndpoint.Address.ToString());
-                                            comm_.message.AddInt(player.udpEndpoint.Port);
-                                            await server.WritePlayer(p.id, comm_.Serialize());
+                                            msg_ = new Message(Comm.BrokerNewMember);
+                                            msg_.AddUShort(player.id);
+                                            msg_.AddString(player.udpEndpoint.Address.ToString());
+                                            msg_.AddInt(player.udpEndpoint.Port);
+                                            await server.WritePlayer(p.id, msg_.GetRaw());
                                         }
                                     }
                                 }
