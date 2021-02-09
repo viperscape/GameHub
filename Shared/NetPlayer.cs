@@ -12,7 +12,7 @@ namespace GameNetwork
     {
         public ConcurrentQueue<Datagram> datagrams = new ConcurrentQueue<Datagram>();
 
-        List<Datagram> reliableQueue = new List<Datagram>();
+        Dictionary<uint, Datagram> reliableQueue = new Dictionary<uint, Datagram>();
 
         public ushort id;
         public IPEndPoint endpoint;
@@ -40,7 +40,13 @@ namespace GameNetwork
             {
                 if (datagram.ack == Ack.isAck) 
                 {
-                    //reliableQueue.TryGetValue()
+                    reliableQueue.Remove(datagram.timestamp);
+                    continue;
+                }
+                else if (datagram.ack == Ack.needAck)
+                {
+                    datagram.ack = Ack.isAck;
+                    _ = unreliable.Write(datagram, endpoint);
                 }
 
                 uint t;
@@ -87,7 +93,16 @@ namespace GameNetwork
         public async Task Write(Message message, bool isReliable = true)
         {
             Datagram datagram = new Datagram(id, (uint)stopwatch.ElapsedMilliseconds, message.GetRaw());
-            if (isReliable) reliableQueue.Add(datagram);
+            if (isReliable)
+            {
+                datagram.ack = Ack.needAck;
+                reliableQueue.TryAdd(datagram.timestamp, datagram);
+
+                foreach(var d in reliableQueue.Values)
+                {
+                    await unreliable.Write(d, endpoint);
+                }
+            }
 
             await unreliable.Write(datagram, endpoint);
         }

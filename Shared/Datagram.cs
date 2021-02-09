@@ -20,8 +20,8 @@ namespace GameNetwork
         public byte[] Pack()
         {
             byte[] id = BitConverter.GetBytes(playerId);
-            byte[] time = BitConverter.GetBytes(timestamp);
             byte[] ack_ = { ack };
+            byte[] time = BitConverter.GetBytes(timestamp);
             byte[] payload = new byte[2 + 1 + 4 + data.Length];
 
             Buffer.BlockCopy(id, 0, payload, 0, id.Length);

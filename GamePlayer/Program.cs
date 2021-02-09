@@ -29,14 +29,11 @@ namespace GameNetwork
 
                 while (true)
                 {
-                    foreach (NetPlayer np in client.players.Values)
+                    foreach (NetPlayer p in client.players.Values)
                     {
                         Message msg_ = new Message(Comm.Empty);
-                        await np.Write(msg_);
-                    } 
-
-                    msg = new Message(Comm.RequestId);
-                    await client.WriteServer(msg);
+                        await p.Write(msg_, false);
+                    }
 
                     foreach (var player in client.players.Values)
                     {
@@ -45,12 +42,15 @@ namespace GameNetwork
                         {
                             msg = new Message(datagram.data);
                             if (msg.kind == Comm.Empty) continue;
+                            
                             Console.WriteLine(msg.kind);
+                            
                             if (msg.kind == Comm.Text)
                                 Console.WriteLine("MSG {0} {1}", datagram.playerId, msg.GetString());
                             else if (msg.kind == Comm.RequestId)
                             {
                                 player.id = msg.GetUShort();
+                                Console.WriteLine("recv id {0}", player.id);
                             }
                             else if (msg.kind == Comm.GameAreasList)
                             {
