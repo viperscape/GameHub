@@ -11,16 +11,16 @@ namespace GameNetwork
         static int port = 7070;
         static Server server;
 
-        static Dictionary<string, List<ushort>> gameAreas; // areas in the game with players present
+        //static Dictionary<string, List<ushort>> gameAreas; // areas in the game with players present
 
         static async Task Main(string[] args)
         {
-            gameAreas = new Dictionary<string, List<ushort>>();
+            //gameAreas = new Dictionary<string, List<ushort>>();
             server = new Server(port);
             await HandleClients();
         }
 
-        static Message GetRawGameAreas()
+        /*static Message GetRawGameAreas()
         {
             Message msg = new Message(Comm.GameAreasList);
             msg.AddInt(gameAreas.Count);
@@ -30,7 +30,7 @@ namespace GameNetwork
             }
 
             return msg;
-        }
+        }*/
 
         static async Task HandleClients()
         {
@@ -38,6 +38,8 @@ namespace GameNetwork
             {
                 foreach (var player in server.players.Values)
                 {
+                    await player.SendReliables();
+
                     List<Datagram> datagrams = player.GetDatagrams();
                     foreach (var datagram in datagrams)
                     {
@@ -62,7 +64,7 @@ namespace GameNetwork
                             msg_.AddInt(msg.GetInt());
                             await player.Write(msg_);
                         }
-                        else if (msg.kind == Comm.RequestGameAreas)
+                        /*else if (msg.kind == Comm.RequestGameAreas)
                         {
                             Message msg_ = GetRawGameAreas();
                             await player.Write(msg_);
@@ -109,7 +111,7 @@ namespace GameNetwork
                                 li.Add(player.id);
                                 gameAreas.Add(area, li);
                             }
-                        }
+                        }*/
 
                         
                     }

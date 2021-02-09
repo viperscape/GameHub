@@ -21,13 +21,27 @@ namespace GameNetwork
         Dictionary<ushort, uint> timestamps = new Dictionary<ushort, uint>();
         public Stopwatch stopwatch { get; private set; }
 
-        public NetPlayer (ushort id_, IPEndPoint endpoint_, Unreliable unreliable_)
+        int MAX_DATAGRAMS = 100; // max datagrams per queue
+
+        public NetPlayer(ushort id_, IPEndPoint endpoint_, Unreliable unreliable_)
         {
             id = id_;
             endpoint = endpoint_;
             unreliable = unreliable_;
             stopwatch = new Stopwatch();
             stopwatch.Start();
+        }
+
+        public void Enqueue(Datagram datagram)
+        {
+            foreach (var d in datagrams)
+            {
+                if ((d.timestamp == datagram.timestamp) && (d.playerId == datagram.playerId))
+                    return;
+            }
+
+            if (datagrams.Count < MAX_DATAGRAMS)
+                datagrams.Enqueue(datagram);
         }
 
         public List<Datagram> GetDatagrams()
@@ -38,7 +52,7 @@ namespace GameNetwork
             Datagram datagram;
             while (datagrams.TryDequeue(out datagram))
             {
-                if (datagram.ack == Ack.isAck) 
+                if (datagram.ack == Ack.isAck)
                 {
                     reliableQueue.Remove(datagram.timestamp);
                     continue;
@@ -52,7 +66,7 @@ namespace GameNetwork
                 uint t;
                 if (timestamps.TryGetValue(datagram.playerId, out t))
                 {
-                    if (datagram.timestamp < t) continue; // ignore really old datagrams
+                    if (datagram.ack == Ack.noAck && datagram.timestamp < t) continue; // ignore really old datagrams
                 }
 
                 // sort timestamps for this fetch interval
@@ -82,7 +96,7 @@ namespace GameNetwork
                     list.Add(datagram);
             }
 
-            foreach(var kv in timestamps_)
+            foreach (var kv in timestamps_)
             {
                 timestamps.TryAdd(kv.Key, kv.Value);
             }
@@ -90,23 +104,24 @@ namespace GameNetwork
             return list;
         }
 
-        public async Task Write(Message message, bool isReliable = true)
+        public async Task Write(Message message, ushort fromId = 0, bool isReliable = true)
         {
-            Datagram datagram = new Datagram(id, (uint)stopwatch.ElapsedMilliseconds, message.GetRaw());
+            Datagram datagram = new Datagram(fromId, (uint)stopwatch.ElapsedMilliseconds, message.GetRaw());
             if (isReliable)
             {
                 datagram.ack = Ack.needAck;
                 reliableQueue.TryAdd(datagram.timestamp, datagram);
-
-                foreach(var d in reliableQueue.Values)
-                {
-                    await unreliable.Write(d, endpoint);
-                }
             }
 
             await unreliable.Write(datagram, endpoint);
         }
 
-
+        public async Task SendReliables()
+        {
+            foreach (var datagram in reliableQueue.Values)
+            {
+                await unreliable.Write(datagram, endpoint);
+            }
+        }
     }
 }

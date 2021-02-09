@@ -36,7 +36,7 @@ namespace GameNetwork
             NetPlayer player;
             if (players.TryGetValue(datagram.playerId, out player))
             {
-                player.datagrams.Enqueue(datagram);
+                player.Enqueue(datagram);
             }
             else if (datagram.playerId == 0)
             {
@@ -44,7 +44,7 @@ namespace GameNetwork
                 {
                     if (remote.Equals(p.endpoint))
                     {
-                        p.datagrams.Enqueue(datagram);
+                        p.Enqueue(datagram);
                         return;
                     }
                 }

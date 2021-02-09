@@ -47,7 +47,7 @@ namespace GameNetwork
             NetPlayer np;
             if (players.TryGetValue(datagram.playerId, out np))
             {
-                np.datagrams.Enqueue(datagram);
+                np.Enqueue(datagram);
             }
         }
 
@@ -59,9 +59,9 @@ namespace GameNetwork
             players.Add(id, np);
         }
 
-        public async Task WriteServer(Message msg)
+        public async Task WriteServer(Message msg, bool isReliable = true)
         {
-            await players[0].Write(msg);
+            await players[0].Write(msg, players[0].id, isReliable);
         }
     }
 }

@@ -23,20 +23,28 @@ namespace GameNetwork
             try
             {
                 Client client = new Client(host, port);
-                Message msg = new Message(Comm.RequestId);
-                await client.WriteServer(msg);
+
+                Message msg = new Message(Comm.Empty);
+                await client.WriteServer(msg, false);
+
                 client.BeginUnreliable();
+
+                msg = new Message(Comm.RequestId);
+                await client.WriteServer(msg);
+                
 
                 while (true)
                 {
                     foreach (NetPlayer p in client.players.Values)
                     {
                         Message msg_ = new Message(Comm.Empty);
-                        await p.Write(msg_, false);
+                        await p.Write(msg_, client.players[0].id, false);
                     }
 
                     foreach (var player in client.players.Values)
                     {
+                        await player.SendReliables();
+
                         List<Datagram> datagrams = player.GetDatagrams();
                         foreach (var datagram in datagrams)
                         {
