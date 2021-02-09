@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\Comm.cs" Link="Comm.cs" />
+    <Compile Include="..\Shared\Compression.cs" Link="Compression.cs" />
+    <Compile Include="..\Shared\Datagram.cs" Link="Datagram.cs" />
+    <Compile Include="..\Shared\LocalPlayer.cs" Link="LocalPlayer.cs" />
+    <Compile Include="..\Shared\Message.cs" Link="Message.cs" />
+    <Compile Include="..\Shared\NetPlayer.cs" Link="NetPlayer.cs" />
+    <Compile Include="..\Shared\Unreliable.cs" Link="Unreliable.cs" />
+  </ItemGroup>
+
+</Project>
