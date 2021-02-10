@@ -45,6 +45,7 @@ namespace GameNetwork
             while (true)
             {
                 if (udp.Client == null) break; // socket forcefully closed?
+                if (!udp.Client.IsBound) continue; // not yet ready to read?
 
                 try
                 {
@@ -55,7 +56,6 @@ namespace GameNetwork
                     Datagram datagram = new Datagram(data);
 
                     if (cb != null) cb(remote, datagram);
-                    
                 }
                 catch (Exception e)
                 {

@@ -25,7 +25,7 @@ namespace GameNetwork
                 Client client = new Client(host, port);
                 await client.Start();
 
-                Message msg = new Message(Comm.RequestId);
+                Message msg = new Message(Comm.RequestPlayerId);
                 await client.WriteServer(msg);
                 
 
@@ -44,7 +44,7 @@ namespace GameNetwork
                             
                             if (msg.kind == Comm.Text)
                                 Console.WriteLine("MSG {0} {1}", datagram.playerId, msg.GetString());
-                            else if (msg.kind == Comm.RequestId)
+                            else if (msg.kind == Comm.AssignPlayerId)
                             {
                                 if (player.id == 0)
                                 {

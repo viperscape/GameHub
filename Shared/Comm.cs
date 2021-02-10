@@ -29,6 +29,7 @@ namespace GameNetwork
             Pong = 16,
             PingReport = 17,
             Pickup = 18,
-            RequestId = 19;
+            RequestPlayerId = 19,
+            AssignPlayerId = 20;
     }
 }

@@ -50,10 +50,10 @@ namespace GameNetwork
                         {
                             Console.WriteLine("server msg {0} {1}", datagram.playerId, msg.GetString());
                         }
-                        else if (msg.kind == Comm.RequestId)
+                        else if (msg.kind == Comm.RequestPlayerId)
                         {
                             Console.WriteLine("request id...");
-                            Message msg_ = new Message(Comm.RequestId);
+                            Message msg_ = new Message(Comm.AssignPlayerId);
                             msg_.AddUShort(player.id);
                             await player.Write(msg_);
                         }
