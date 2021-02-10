@@ -10,7 +10,7 @@ namespace GameNetwork
     public class Comm
     {
         public const ushort
-            Empty = 0,
+            Reserved = 0,
             JoinGameArea = 1,
             GameAreasList = 2,
             RequestGameAreas = 3,

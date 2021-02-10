@@ -18,9 +18,10 @@ namespace GameNetwork
         public Client (string host, int port)
         {
             players = new Dictionary<ushort, NetPlayer>();
-
+            unreliable = new Unreliable();
             stopwatch = new Stopwatch();
             stopwatch.Start();
+
             IPHostEntry host_info = Dns.GetHostEntry(host);
             IPAddress ip;
 
@@ -31,14 +32,12 @@ namespace GameNetwork
 
             Console.WriteLine("Client socket destination {0}", ip);
 
-            unreliable = new Unreliable();
-            IPEndPoint ep = new IPEndPoint(ip, port);
-            NetPlayer np = new NetPlayer(0, ep, unreliable); // player id 0 is our server connection
-            players.Add(0, np);
+            AddPeer(0, ip.ToString(), port);  // player id 0 is our server connection
         }
 
-        public void BeginUnreliable()
+        public async Task Start()
         {
+            await WriteServer(new Message(0), false);
             _ = unreliable.Read(AppendDatagrams);
         }
 
@@ -51,9 +50,9 @@ namespace GameNetwork
             }
         }
 
-        public void AddPeer(ushort id, string host, int port)
+        public void AddPeer(ushort id, string hostIP, int port)
         {
-            IPAddress ip = IPAddress.Parse(host);
+            IPAddress ip = IPAddress.Parse(hostIP);
             IPEndPoint ep = new IPEndPoint(ip, port);
             NetPlayer np = new NetPlayer(id, ep, unreliable);
             players.Add(id, np);

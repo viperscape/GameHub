@@ -52,7 +52,6 @@ namespace GameNetwork
                     IPEndPoint remote = (IPEndPoint)res.RemoteEndPoint;
                 
                     byte[] data = await Compression.Decompress(res.Buffer);
-
                     Datagram datagram = new Datagram(data);
 
                     if (cb != null) cb(remote, datagram);

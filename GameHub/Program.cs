@@ -44,7 +44,6 @@ namespace GameNetwork
                     foreach (var datagram in datagrams)
                     {
                         Message msg = new Message(datagram.data); // unwrap into a easy to use message type
-                        if (msg.kind == Comm.Empty) continue;
 
                         Console.WriteLine(msg.kind);
                         if (msg.kind == Comm.Text)

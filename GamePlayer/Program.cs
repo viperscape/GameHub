@@ -23,24 +23,14 @@ namespace GameNetwork
             try
             {
                 Client client = new Client(host, port);
+                await client.Start();
 
-                Message msg = new Message(Comm.Empty);
-                await client.WriteServer(msg, false);
-
-                client.BeginUnreliable();
-
-                msg = new Message(Comm.RequestId);
+                Message msg = new Message(Comm.RequestId);
                 await client.WriteServer(msg);
                 
 
                 while (true)
                 {
-                    foreach (NetPlayer p in client.players.Values)
-                    {
-                        Message msg_ = new Message(Comm.Empty);
-                        await p.Write(msg_, client.players[0].id, false);
-                    }
-
                     foreach (var player in client.players.Values)
                     {
                         await player.SendReliables();
@@ -49,7 +39,6 @@ namespace GameNetwork
                         foreach (var datagram in datagrams)
                         {
                             msg = new Message(datagram.data);
-                            if (msg.kind == Comm.Empty) continue;
                             
                             Console.WriteLine(msg.kind);
                             
@@ -57,8 +46,11 @@ namespace GameNetwork
                                 Console.WriteLine("MSG {0} {1}", datagram.playerId, msg.GetString());
                             else if (msg.kind == Comm.RequestId)
                             {
-                                player.id = msg.GetUShort();
-                                Console.WriteLine("recv id {0}", player.id);
+                                if (player.id == 0)
+                                {
+                                    player.id = msg.GetUShort();
+                                    Console.WriteLine("recv id {0}", player.id);
+                                }
                             }
                             else if (msg.kind == Comm.GameAreasList)
                             {
@@ -76,10 +68,6 @@ namespace GameNetwork
                                 int port = msg.GetInt();
                                 Console.WriteLine("udp endpoint {0} {1} {2}", id, address, port);
                                 client.AddPeer(id, address, port);
-                            }
-                            else if (msg.kind == Comm.Empty)
-                            {
-                                Console.WriteLine("Empty {0} {1}", player.id, datagram.playerId);
                             }
                             else if (msg.kind == Comm.Quit)
                             {

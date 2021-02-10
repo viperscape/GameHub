@@ -34,7 +34,20 @@ namespace GameNetwork
 
         public void Enqueue(Datagram datagram)
         {
-            foreach (var d in datagrams)
+            if (datagram.ack == Ack.isAck)
+            {
+                reliableQueue.Remove(datagram.timestamp);
+                return;
+            }
+            else if (datagram.ack == Ack.needAck)
+            {
+                datagram.ack = Ack.isAck;
+                _ = unreliable.Write(datagram, endpoint);
+
+                if (BitConverter.ToUInt16(datagram.data, 0) == 0) return; // reserved packet? ignore
+            }
+
+            foreach (var d in datagrams) // no dupe datagrams
             {
                 if ((d.timestamp == datagram.timestamp) && (d.playerId == datagram.playerId))
                     return;
@@ -52,17 +65,6 @@ namespace GameNetwork
             Datagram datagram;
             while (datagrams.TryDequeue(out datagram))
             {
-                if (datagram.ack == Ack.isAck)
-                {
-                    reliableQueue.Remove(datagram.timestamp);
-                    continue;
-                }
-                else if (datagram.ack == Ack.needAck)
-                {
-                    datagram.ack = Ack.isAck;
-                    _ = unreliable.Write(datagram, endpoint);
-                }
-
                 uint t;
                 if (timestamps.TryGetValue(datagram.playerId, out t))
                 {
