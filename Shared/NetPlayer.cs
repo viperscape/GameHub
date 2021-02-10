@@ -100,7 +100,8 @@ namespace GameNetwork
 
             foreach (var kv in timestamps_)
             {
-                timestamps.TryAdd(kv.Key, kv.Value);
+                if (!timestamps.TryAdd(kv.Key, kv.Value))
+                    timestamps[kv.Key] = kv.Value;
             }
 
             return list;
