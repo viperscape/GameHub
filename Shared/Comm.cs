@@ -30,6 +30,7 @@ namespace GameNetwork
             PingReport = 17,
             Pickup = 18,
             RequestPlayerId = 19,
-            AssignPlayerId = 20;
+            AssignPlayerId = 20,
+            PlayerUuid = 21;
     }
 }

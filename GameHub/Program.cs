@@ -57,6 +57,15 @@ namespace GameNetwork
                             msg_.AddUShort(player.id);
                             await player.Write(msg_);
                         }
+                        else if (msg.kind == Comm.PlayerUuid)
+                        {
+                            Console.WriteLine("uuid...");
+                            
+                            player.uuid = msg.GetString();
+                            Message msg_ = new Message(Comm.AssignPlayerId);
+                            msg_.AddUShort(player.id);
+                            await player.Write(msg_);
+                        }
                         else if (msg.kind == Comm.Ping)
                         {
                             Message msg_ = new Message(Comm.Pong);

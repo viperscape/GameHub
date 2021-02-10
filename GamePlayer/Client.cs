@@ -14,6 +14,7 @@ namespace GameNetwork
         public Stopwatch stopwatch { get; private set; }
 
         Unreliable unreliable;
+        public string uuid = Guid.NewGuid().ToString();
 
         public Client (string host, int port)
         {

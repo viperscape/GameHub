@@ -39,23 +39,33 @@ namespace GameNetwork
                 player.Enqueue(datagram);
             }
             else if (datagram.playerId == 0)
-            {
-                foreach (var p in players.Values)
+            { // before a player finalized the player id with the server the first few packets will need assignment manually
+                ushort id = 0;
+
+                foreach (var kv in players)
                 {
-                    if (remote.Equals(p.endpoint))
+                    if (remote.Equals(kv.Value.endpoint))
                     {
-                        p.Enqueue(datagram);
-                        return;
+                        id = kv.Key;
+                        break;
                     }
                 }
 
-                bool added = false;
-                while (!added)
+                if (id == 0)
                 {
-                    ushort id = (ushort)rand.Next(65000);
+                    bool added = false;
                     player = new NetPlayer(id, remote, unreliable);
-                    added = players.TryAdd(id, player);
+
+
+                    while (!added)
+                    {
+                        id = (ushort)rand.Next(65000);
+                        player.id = id;
+                        added = players.TryAdd(id, player);
+                    }
                 }
+
+                players[id].Enqueue(datagram);
             }
         }
     }

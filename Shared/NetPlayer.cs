@@ -14,7 +14,8 @@ namespace GameNetwork
         List<Datagram> ackGrams = new List<Datagram>();
         Dictionary<uint, Datagram> reliableQueue = new Dictionary<uint, Datagram>();
 
-        public ushort id;
+        public ushort id; // session id
+        public string uuid; // long term unique player id
         public IPEndPoint endpoint;
         public Unreliable unreliable;
 

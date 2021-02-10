@@ -25,7 +25,11 @@ namespace GameNetwork
                 Client client = new Client(host, port);
                 await client.Start();
 
-                Message msg = new Message(Comm.RequestPlayerId);
+                Message msg = new Message(Comm.PlayerUuid);
+                msg.AddString(client.uuid);
+                await client.WriteServer(msg);
+
+                msg = new Message(Comm.RequestPlayerId);
                 await client.WriteServer(msg);
                 
 
