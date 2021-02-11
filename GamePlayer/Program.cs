@@ -43,6 +43,8 @@ namespace GameNetwork
 
                     // loop through the server messages
                     var server = client.players[0];
+                    await server.SendReliables();
+
                     List<Datagram> datagrams = server.GetDatagrams();
                     foreach (var datagram in datagrams)
                     {
