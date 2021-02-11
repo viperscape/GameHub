@@ -11,16 +11,16 @@ namespace GameNetwork
         static int port = 7070;
         static Server server;
 
-        //static Dictionary<string, List<ushort>> gameAreas; // areas in the game with players present
+        static Dictionary<string, List<ushort>> gameAreas; // areas in the game with players present
 
         static async Task Main(string[] args)
         {
-            //gameAreas = new Dictionary<string, List<ushort>>();
+            gameAreas = new Dictionary<string, List<ushort>>();
             server = new Server(port);
             await HandleClients();
         }
 
-        /*static Message GetRawGameAreas()
+        static Message GetRawGameAreas()
         {
             Message msg = new Message(Comm.GameAreasList);
             msg.AddInt(gameAreas.Count);
@@ -30,12 +30,14 @@ namespace GameNetwork
             }
 
             return msg;
-        }*/
+        }
 
         static async Task HandleClients()
         {
             while (true)
             {
+                //Console.Write(".");
+
                 foreach (var player in server.players.Values)
                 {
                     await player.SendReliables();
@@ -45,26 +47,21 @@ namespace GameNetwork
                     {
                         Message msg = new Message(datagram.data); // unwrap into a easy to use message type
 
-                        Console.WriteLine(msg.kind);
+                        //Console.WriteLine("{0} {1}", msg.kind, datagram.packetId);
+
                         if (msg.kind == Comm.Text)
                         {
                             Console.WriteLine("server msg {0} {1}", datagram.playerId, msg.GetString());
                         }
                         else if (msg.kind == Comm.RequestPlayerId)
                         {
-                            Console.WriteLine("request id...");
                             Message msg_ = new Message(Comm.AssignPlayerId);
                             msg_.AddUShort(player.id);
                             await player.Write(msg_);
                         }
                         else if (msg.kind == Comm.PlayerUuid)
                         {
-                            Console.WriteLine("uuid...");
-                            
                             player.uuid = msg.GetString();
-                            Message msg_ = new Message(Comm.AssignPlayerId);
-                            msg_.AddUShort(player.id);
-                            await player.Write(msg_);
                         }
                         else if (msg.kind == Comm.Ping)
                         {
@@ -72,7 +69,7 @@ namespace GameNetwork
                             msg_.AddInt(msg.GetInt());
                             await player.Write(msg_);
                         }
-                        /*else if (msg.kind == Comm.RequestGameAreas)
+                        else if (msg.kind == Comm.RequestGameAreas)
                         {
                             Message msg_ = GetRawGameAreas();
                             await player.Write(msg_);
@@ -80,7 +77,15 @@ namespace GameNetwork
                         else if (msg.kind == Comm.JoinGameArea)
                         {
                             string area = msg.GetString();
-                            Console.WriteLine("join request {0} {1}", datagram.playerId, area);
+
+                            if (player.id == 0)
+                            {
+                                Message msg_ = new Message(Comm.DenyJoinGameArea);
+                                msg.AddString("Invalid player id");
+                                await player.Write(msg_);
+                                continue;
+                            }
+
                             List<ushort> ids;
                             gameAreas.TryGetValue(area, out ids);
                             if (ids != null)
@@ -119,9 +124,7 @@ namespace GameNetwork
                                 li.Add(player.id);
                                 gameAreas.Add(area, li);
                             }
-                        }*/
-
-                        
+                        }
                     }
                 }
 

@@ -31,12 +31,21 @@ namespace GameNetwork
 
                 msg = new Message(Comm.RequestPlayerId);
                 await client.WriteServer(msg);
-                
+
+                msg = new Message(Comm.JoinGameArea);
+                msg.AddString("test");
+                await client.WriteServer(msg);
+
 
                 while (true)
                 {
-                    foreach (var player in client.players.Values)
+                    ushort[] player_keys = new ushort[client.players.Keys.Count];
+                    client.players.Keys.CopyTo(player_keys, 0);
+                    foreach (var key in player_keys)
                     {
+                        NetPlayer player;
+                        if (!client.players.TryGetValue(key, out player)) continue;
+
                         await player.SendReliables();
 
                         List<Datagram> datagrams = player.GetDatagrams();
@@ -44,13 +53,13 @@ namespace GameNetwork
                         {
                             msg = new Message(datagram.data);
                             
-                            Console.WriteLine(msg.kind);
+                            //Console.WriteLine("{0} {1}", msg.kind, datagram.packetId);
                             
                             if (msg.kind == Comm.Text)
                                 Console.WriteLine("MSG {0} {1}", datagram.playerId, msg.GetString());
                             else if (msg.kind == Comm.AssignPlayerId)
                             {
-                                if (player.id == 0)
+                                if (player.id == 0) // only change if we never had an id
                                 {
                                     player.id = msg.GetUShort();
                                     Console.WriteLine("recv id {0}", player.id);
@@ -65,6 +74,8 @@ namespace GameNetwork
                                     Console.WriteLine("area {0}", area);
                                 }
                             }
+                            else if (msg.kind == Comm.DenyJoinGameArea)
+                                Console.WriteLine("Deny {0}", msg.GetString());
                             else if (msg.kind == Comm.BrokerNewMember)
                             {
                                 ushort id = msg.GetUShort();

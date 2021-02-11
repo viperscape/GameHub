@@ -31,6 +31,7 @@ namespace GameNetwork
             Pickup = 18,
             RequestPlayerId = 19,
             AssignPlayerId = 20,
-            PlayerUuid = 21;
+            PlayerUuid = 21,
+            DenyJoinGameArea = 22;
     }
 }

@@ -56,7 +56,7 @@ namespace GameNetwork
             IPAddress ip = IPAddress.Parse(hostIP);
             IPEndPoint ep = new IPEndPoint(ip, port);
             NetPlayer np = new NetPlayer(id, ep, unreliable);
-            players.Add(id, np);
+            players.TryAdd(id, np);
         }
 
         public async Task WriteServer(Message msg, bool isReliable = true)
