@@ -31,12 +31,12 @@ namespace GameNetwork
             _ = unreliable.Read(LinkPlayer);
         }
 
-        void LinkPlayer(IPEndPoint remote, Datagram datagram)
+        async Task LinkPlayer(IPEndPoint remote, Datagram datagram)
         {
             NetPlayer player;
             if (players.TryGetValue(datagram.playerId, out player))
             {
-                player.Enqueue(datagram);
+                await player.Enqueue(datagram);
             }
             else if (datagram.playerId == 0)
             { // before a player finalized the player id with the server the first few packets will need assignment manually
@@ -65,7 +65,7 @@ namespace GameNetwork
                     }
                 }
 
-                players[id].Enqueue(datagram);
+                await players[id].Enqueue(datagram);
             }
         }
     }

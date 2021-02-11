@@ -35,7 +35,7 @@ namespace GameNetwork
             stopwatch.Start();
         }
 
-        public void Enqueue(Datagram datagram)
+        public async Task Enqueue(Datagram datagram)
         {
             // we should check the ttl on old archived messages
             foreach (var d in ackGrams.Values)
@@ -57,7 +57,7 @@ namespace GameNetwork
                 datagram_.ack = Ack.isAck;
                 byte[] data = new byte[1]; // wipe payload
                 datagram_.data = data;
-                _ = unreliable.Write(datagram_, endpoint);
+                await unreliable.Write(datagram_, endpoint);
 
                 if (!ackGrams.TryAdd(datagram.packetId, datagram_)) // make note that we saw this already
                 {

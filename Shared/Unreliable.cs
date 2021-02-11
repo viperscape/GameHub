@@ -40,7 +40,7 @@ namespace GameNetwork
             );
         }
 
-        public async Task Read(Action<IPEndPoint, Datagram> cb = null)
+        public async Task Read(Func<IPEndPoint, Datagram, Task> cb = null)
         {
             while (true)
             {
@@ -55,7 +55,7 @@ namespace GameNetwork
                     byte[] data = await Compression.Decompress(res.Buffer);
                     Datagram datagram = new Datagram(data);
 
-                    if (cb != null) cb(remote, datagram);
+                    if (cb != null) await cb(remote, datagram);
                 }
                 catch (Exception e)
                 {

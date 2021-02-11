@@ -43,12 +43,12 @@ namespace GameNetwork
             _ = unreliable.Read(AppendDatagrams);
         }
 
-        void AppendDatagrams(IPEndPoint remote, Datagram datagram)
+        async Task AppendDatagrams(IPEndPoint remote, Datagram datagram)
         {
             NetPlayer np;
             if (players.TryGetValue(datagram.playerId, out np))
             {
-                np.Enqueue(datagram);
+                await np.Enqueue(datagram);
             }
         }
 
