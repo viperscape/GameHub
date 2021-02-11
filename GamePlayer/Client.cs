@@ -15,6 +15,7 @@ namespace GameNetwork
 
         Unreliable unreliable;
         public string uuid = Guid.NewGuid().ToString();
+        public ushort id; // network player session id
 
         public Client (string host, int port)
         {
@@ -61,7 +62,12 @@ namespace GameNetwork
 
         public async Task WriteServer(Message msg, bool isReliable = true)
         {
-            await players[0].Write(msg, players[0].id, isReliable);
+            await players[0].Write(msg, id, isReliable);
+        }
+
+        public async Task WritePlayer(ushort toId, Message msg, bool isReliable = true)
+        {
+            await players[toId].Write(msg, id, isReliable);
         }
     }
 }

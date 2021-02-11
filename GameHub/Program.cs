@@ -111,7 +111,7 @@ namespace GameNetwork
                                             msg_.AddUShort(player.id);
                                             msg_.AddString(player.endpoint.Address.ToString());
                                             msg_.AddInt(player.endpoint.Port);
-                                            await player.Write(msg_);
+                                            await p.Write(msg_);
                                         }
                                     }
                                 }
