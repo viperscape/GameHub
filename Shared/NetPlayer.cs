@@ -58,6 +58,7 @@ namespace GameNetwork
                     if (stopwatch.ElapsedMilliseconds - lastSeen > 5000)
                     {
                         shouldDrop = true;
+                        break;
                     }
                 }
 
