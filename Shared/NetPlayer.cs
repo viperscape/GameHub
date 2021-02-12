@@ -18,6 +18,10 @@ namespace GameNetwork
         public string uuid; // long term unique player id
         public IPEndPoint endpoint;
         public Unreliable unreliable;
+        public uint ping { get; private set; } = 0;
+        public int pingLoss = 0;
+        public int packetLoss { get; private set; } = 0;
+        public uint lastSeen { get; private set; } = 0;
 
         uint packetCount = 0; // outbound packet count, used for tracking
 
@@ -33,6 +37,27 @@ namespace GameNetwork
             unreliable = unreliable_;
             stopwatch = new Stopwatch();
             stopwatch.Start();
+            _ = StartPing();
+        }
+
+        public async Task StartPing()
+        {
+            long rangeTime = stopwatch.ElapsedMilliseconds;
+            while (true)
+            {
+                await Task.Delay(250);
+
+                if (stopwatch.ElapsedMilliseconds - rangeTime > 5000)
+                {
+                    packetLoss = pingLoss / 5; // average over 5 seconds
+                    rangeTime = stopwatch.ElapsedMilliseconds;
+                    pingLoss = 0;
+                    Console.WriteLine("packet loss per second: {0}% {1}", ((float)packetLoss/4) * 100, endpoint.ToString());
+                }
+
+                pingLoss++;
+                await Write(new Message(0), id, false);
+            }
         }
 
         public async Task Enqueue(Datagram datagram)
@@ -45,6 +70,8 @@ namespace GameNetwork
                     ackGrams.TryRemove(d.packetId, out _);
                 }
             }
+
+
 
             if (datagram.ack == Ack.isAck)
             {
@@ -67,14 +94,24 @@ namespace GameNetwork
                 }
             }
 
-           /* foreach (var d in datagrams) // no dupe datagrams
+            if (BitConverter.ToUInt16(datagram.data, 0) == 0)  // reserved packet? ignore, this is for lower level stuff only
             {
-              //  if (d.packetId == datagram.packetId)
-                    //return;
-            }*/
-            
+                if (datagram.playerId == id) // our pingback?
+                {
+                    pingLoss--;
 
-            if (BitConverter.ToUInt16(datagram.data, 0) == 0) return; // reserved packet? ignore, this is for lower level stuff only
+                    if (lastSeen > datagram.timestamp)
+                        ping = datagram.timestamp - (uint)stopwatch.ElapsedMilliseconds;
+                }
+                else
+                    await unreliable.Write(datagram, endpoint); // return packet as is
+
+
+                lastSeen = (uint)stopwatch.ElapsedMilliseconds;
+
+                return;
+            }
+
 
             if (datagrams.Count < MAX_DATAGRAMS) // buffer only a few seconds of packets worth
                 datagrams.Add(datagram);
