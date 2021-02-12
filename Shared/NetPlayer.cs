@@ -22,6 +22,7 @@ namespace GameNetwork
         public int pingLoss = 0;
         public int packetLoss { get; private set; } = 0;
         public uint lastSeen { get; private set; } = 0;
+        public bool shouldDrop = false;
 
         uint packetCount = 0; // outbound packet count, used for tracking
 
@@ -53,6 +54,11 @@ namespace GameNetwork
                     rangeTime = stopwatch.ElapsedMilliseconds;
                     pingLoss = 0;
                     Console.WriteLine("packet loss per second: {0}% {1}", ((float)packetLoss/4) * 100, endpoint.ToString());
+
+                    if (stopwatch.ElapsedMilliseconds - lastSeen > 5000)
+                    {
+                        shouldDrop = true;
+                    }
                 }
 
                 pingLoss++;

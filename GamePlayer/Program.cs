@@ -39,7 +39,7 @@ namespace GameNetwork
 
                 while (true)
                 {
-                    await Task.Delay(50); // wait for 20 pps roughly
+                    await Task.Delay(50); // wait for 20 pps roughly                    
 
                     // loop through the server messages
                     var server = client.players[0];
@@ -99,6 +99,8 @@ namespace GameNetwork
 
                         NetPlayer player;
                         if (!client.players.TryGetValue(key, out player)) continue;
+
+                        if (player.shouldDrop) client.players.Remove(player.id);
 
                         await player.SendReliables();
 

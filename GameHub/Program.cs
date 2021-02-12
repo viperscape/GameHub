@@ -38,8 +38,19 @@ namespace GameNetwork
             {
                 //Console.Write(".");
 
-                foreach (var player in server.players.Values)
+                // loop through connected players messages
+                if (server.players.Count < 2) continue;
+                ushort[] player_keys = new ushort[server.players.Keys.Count];
+                server.players.Keys.CopyTo(player_keys, 0);
+                foreach (var key in player_keys)
                 {
+                    if (key == 0) continue; // skip server key
+
+                    NetPlayer player;
+                    if (!server.players.TryGetValue(key, out player)) continue;
+
+                    if (player.shouldDrop) server.players.Remove(player.id);
+
                     await player.SendReliables();
 
                     List<Datagram> datagrams = player.GetDatagrams();
