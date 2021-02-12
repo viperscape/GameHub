@@ -55,6 +55,7 @@ namespace GameNetwork
             {
                 Datagram datagram_ = new Datagram(datagram.Pack()); // recreate as a copy
                 datagram_.ack = Ack.isAck;
+                //datagram_.playerId = id; // recreate as from us
                 byte[] data = new byte[1]; // wipe payload
                 datagram_.data = data;
                 await unreliable.Write(datagram_, endpoint);
@@ -66,11 +67,11 @@ namespace GameNetwork
                 }
             }
 
-            foreach (var d in datagrams) // no dupe datagrams
+           /* foreach (var d in datagrams) // no dupe datagrams
             {
-                if (d.packetId == datagram.packetId)
-                    return;
-            }
+              //  if (d.packetId == datagram.packetId)
+                    //return;
+            }*/
             
 
             if (BitConverter.ToUInt16(datagram.data, 0) == 0) return; // reserved packet? ignore, this is for lower level stuff only

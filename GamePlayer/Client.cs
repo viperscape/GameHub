@@ -50,6 +50,23 @@ namespace GameNetwork
             {
                 await np.Enqueue(datagram);
             }
+            else // find by endpoint instead FIXME this is because we are peering connections and the id isn't matching properly
+            {
+                ushort id = 0;
+                foreach (var kv in players)
+                {
+                    if (remote.Equals(kv.Value.endpoint))
+                    {
+                        id = kv.Key;
+                        break;
+                    }
+                }
+
+                if (players.TryGetValue(id, out np))
+                {
+                    await np.Enqueue(datagram);
+                }
+            }
         }
 
         public void AddPeer(ushort id, string hostIP, int port)
