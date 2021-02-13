@@ -12,17 +12,27 @@ namespace GameNetwork
         static string host = "localhost"; //"44.234.72.181";
         static async Task Main(string[] args)
         {
-            await TestClient();
+            Client client = new Client(host, port);
+            await Start(client, HandlePlayers);
         }
 
+        static async Task HandlePlayers(Datagram datagram)
+        {
+            Message msg = new Message(datagram.data);
+            if (msg.kind == Comm.Text)
+                Console.WriteLine("MSG {0} player {1}, says: {2}", datagram.packetId, datagram.playerId, msg.GetString());
+            else
+            {
+                Console.WriteLine("other datagram type {0} {1}", datagram.playerId, msg.kind);
+            }
+        }
 
-        static async Task TestClient(int delay = 0) // simulate client
+        static async Task Start(Client client, Func<Datagram, Task> cb, int delay = 0)
         {
             await Task.Delay(delay);
 
             try
             {
-                Client client = new Client(host, port);
                 await client.Start();
 
                 Message msg = new Message(Comm.PlayerUuid);
@@ -32,14 +42,9 @@ namespace GameNetwork
                 msg = new Message(Comm.RequestPlayerId);
                 await client.WriteServer(msg);
 
-                msg = new Message(Comm.JoinGameArea);
-                msg.AddString("test");
-                await client.WriteServer(msg);
-
-
                 while (true)
                 {
-                    await Task.Delay(50); // wait for 20 pps roughly                    
+                    await Task.Delay(50); // wait for 20 pps roughly
 
                     // loop through the server messages
                     var server = client.players[0];
@@ -100,7 +105,11 @@ namespace GameNetwork
                         NetPlayer player;
                         if (!client.players.TryGetValue(key, out player)) continue;
 
-                        if (player.shouldDrop) client.players.Remove(player.id);
+                        if (player.shouldDrop) // NOTE we may want to process the final datagrams before dropping player...
+                        {
+                            client.players.Remove(player.id);
+                            continue;
+                        }
 
                         await player.SendReliables();
 
@@ -109,21 +118,7 @@ namespace GameNetwork
                         {
                             if (datagram.playerId == 0) continue; // ignore unknown player commands
 
-                            msg = new Message(datagram.data);
-                            
-                            //Console.WriteLine("{0} {1}", msg.kind, datagram.packetId);
-                            
-                            if (msg.kind == Comm.Text)
-                                Console.WriteLine("MSG {0} player {1}, says: {2}", datagram.packetId, datagram.playerId, msg.GetString());
-                            else if (msg.kind == Comm.Quit)
-                            {
-                                ushort id = msg.GetUShort();
-                                client.players.Remove(id);
-                            }
-                            else
-                            {
-                                Console.WriteLine("other datagram type {0} {1}", datagram.playerId, msg.kind);
-                            }
+                            await cb(datagram);
                         }
                     }
                 }

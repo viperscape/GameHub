@@ -53,7 +53,8 @@ namespace GameNetwork
                     packetLoss = pingLoss / 5; // average over 5 seconds
                     rangeTime = stopwatch.ElapsedMilliseconds;
                     pingLoss = 0;
-                    Console.WriteLine("packet loss per second: {0}% {1}", ((float)packetLoss/4) * 100, endpoint.ToString());
+                    
+                    //Console.WriteLine("packet loss per second: {0}% {1}", ((float)packetLoss/4) * 100, endpoint.ToString());
 
                     if (stopwatch.ElapsedMilliseconds - lastSeen > 5000)
                     {
@@ -65,6 +66,17 @@ namespace GameNetwork
                 pingLoss++;
                 await Write(new Message(0), id, false);
             }
+        }
+
+        public void ResetStats ()
+        {
+            ping = 0;
+            pingLoss = 0;
+            packetLoss = 0;
+            //stopwatch.Restart();
+            lastSeen = (uint) stopwatch.ElapsedMilliseconds;
+            //packetCount = 0;
+            shouldDrop = false;
         }
 
         public async Task Enqueue(Datagram datagram)

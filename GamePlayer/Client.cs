@@ -74,7 +74,11 @@ namespace GameNetwork
             IPAddress ip = IPAddress.Parse(hostIP);
             IPEndPoint ep = new IPEndPoint(ip, port);
             NetPlayer np = new NetPlayer(id, ep, unreliable);
-            players.TryAdd(id, np);
+            if (!players.TryAdd(id, np)) // already known player, maybe reconnecting from new endpoint
+            {
+                players[id].ResetStats();
+                players[id].endpoint = ep;
+            }
         }
 
         public async Task WriteServer(Message msg, bool isReliable = true)
