@@ -47,7 +47,7 @@ namespace GameNetwork
             }
         }
 
-        static async Task Start(Client client, Func<Datagram, Task> servercb, Func<Datagram, Task> playercb, int delay = 0)
+        public static async Task Start(Client client, Func<Datagram, Task> servercb, Func<Datagram, Task> playercb, int delay = 0)
         {
             await Task.Delay(delay);
 
