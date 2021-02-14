@@ -13,10 +13,26 @@ namespace GameNetwork
         static async Task Main(string[] args)
         {
             Client client = new Client(host, port);
-            await Start(client, HandlePlayers);
+            await Start(client, HandleServer, HandlePlayers);
         }
 
-        static async Task HandlePlayers(Datagram datagram)
+        static async Task HandleServer(Datagram datagram)
+        {
+            Message msg = new Message(datagram.data);
+            if (msg.kind == Comm.GameAreasList)
+            {
+                int count = msg.GetInt();
+                for (; count > 0; count--)
+                {
+                    string area = msg.GetString();
+                    Console.WriteLine("area {0}", area);
+                }
+            }
+            else if (msg.kind == Comm.DenyJoinGameArea)
+                Console.WriteLine("Deny {0}", msg.GetString());
+        }
+
+            static async Task HandlePlayers(Datagram datagram)
         {
             Message msg = new Message(datagram.data);
             if (msg.kind == Comm.Text)
@@ -27,7 +43,7 @@ namespace GameNetwork
             }
         }
 
-        static async Task Start(Client client, Func<Datagram, Task> cb, int delay = 0)
+        static async Task Start(Client client, Func<Datagram, Task> servercb, Func<Datagram, Task> playercb, int delay = 0)
         {
             await Task.Delay(delay);
 
@@ -64,17 +80,6 @@ namespace GameNetwork
                                 Console.WriteLine("recv id {0}", client.id);
                             }
                         }
-                        else if (msg.kind == Comm.GameAreasList)
-                        {
-                            int count = msg.GetInt();
-                            for (; count > 0; count--)
-                            {
-                                string area = msg.GetString();
-                                Console.WriteLine("area {0}", area);
-                            }
-                        }
-                        else if (msg.kind == Comm.DenyJoinGameArea)
-                            Console.WriteLine("Deny {0}", msg.GetString());
                         else if (msg.kind == Comm.BrokerNewMember)
                         {
                             ushort id = msg.GetUShort();
@@ -82,17 +87,12 @@ namespace GameNetwork
                             int port = msg.GetInt();
                             Console.WriteLine("udp endpoint {0} {1} {2}", id, address, port);
                             client.AddPeer(id, address, port);
+                        }
 
-                            Message msg_ = new Message(Comm.Text);
-                            msg_.AddString("hi from " + client.id);
-                            await client.WritePlayer(id, msg_);
-                        }
-                        else if (msg.kind == Comm.Quit)
-                        {
-                            ushort id = msg.GetUShort();
-                            client.players.Remove(id);
-                        }
+                        await servercb(datagram);
                     }
+
+
 
                     // loop through connected players messages
                     if (client.players.Count < 2) continue;
@@ -118,7 +118,7 @@ namespace GameNetwork
                         {
                             if (datagram.playerId == 0) continue; // ignore unknown player commands
 
-                            await cb(datagram);
+                            await playercb(datagram);
                         }
                     }
                 }
