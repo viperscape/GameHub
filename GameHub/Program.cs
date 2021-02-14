@@ -89,13 +89,19 @@ namespace GameNetwork
                         {
                             string area = msg.GetString();
 
+                            Message msg_;
                             if (player.id == 0)
                             {
-                                Message msg_ = new Message(Comm.DenyJoinGameArea);
+                                msg_ = new Message(Comm.JoinGameArea);
+                                msg.AddBool(false);
                                 msg.AddString("Invalid player id");
                                 await player.Write(msg_);
                                 continue;
                             }
+
+                            msg_ = new Message(Comm.JoinGameArea);
+                            msg.AddBool(true);
+                            await player.Write(msg_);
 
                             List<ushort> ids;
                             gameAreas.TryGetValue(area, out ids);
@@ -107,7 +113,7 @@ namespace GameNetwork
                                     server.players.TryGetValue(id, out p);
                                     if (p != null)
                                     {
-                                        Message msg_ = new Message(Comm.BrokerNewMember);
+                                        msg_ = new Message(Comm.BrokerNewMember);
                                         if (p.endpoint != null) // grab all upd connections and share with new player
                                         {
                                             msg_.AddUShort(p.id);

@@ -28,8 +28,12 @@ namespace GameNetwork
                     Console.WriteLine("area {0}", area);
                 }
             }
-            else if (msg.kind == Comm.DenyJoinGameArea)
-                Console.WriteLine("Deny {0}", msg.GetString());
+            else if (msg.kind == Comm.JoinGameArea)
+            {
+                bool joined = msg.GetBool();
+                if (joined) Console.WriteLine("joined area {0}", joined);
+                else Console.WriteLine("joined area {0}", joined, msg.GetString());
+            }
         }
 
             static async Task HandlePlayers(Datagram datagram)
