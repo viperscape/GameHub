@@ -39,7 +39,7 @@ namespace GameNetwork
                 //Console.Write(".");
 
                 // loop through connected players messages
-                if (server.players.Count < 2) continue;
+                if (server.players.Count < 1) continue;
                 ushort[] player_keys = new ushort[server.players.Keys.Count];
                 server.players.Keys.CopyTo(player_keys, 0);
                 foreach (var key in player_keys)
@@ -100,7 +100,7 @@ namespace GameNetwork
                             }
 
                             msg_ = new Message(Comm.JoinGameArea);
-                            msg.AddBool(true);
+                            msg_.AddBool(true);
                             await player.Write(msg_);
 
                             List<ushort> ids;
