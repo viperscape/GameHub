@@ -17,7 +17,7 @@ namespace GameNetwork
             BrokerNewMember = 4,
             Text = 5,
             Transform = 6,
-            Position3 = 7,
+            Controller = 7,
             Forward3 = 8,
             Rotate3 = 9,
             LevelStatus = 10,
