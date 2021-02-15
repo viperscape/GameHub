@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GameNetwork
@@ -13,7 +14,7 @@ namespace GameNetwork
         public Dictionary<ushort, NetPlayer> players;
         public Stopwatch stopwatch { get; private set; }
 
-        Unreliable unreliable;
+        public Unreliable unreliable { get; private set; }
         public string uuid = Guid.NewGuid().ToString();
         public ushort id; // network player session id
 

@@ -133,7 +133,20 @@ namespace GameNetwork
 
 
             if (datagrams.Count < MAX_DATAGRAMS) // buffer only a few seconds of packets worth
-                datagrams.Add(datagram);
+            {
+                bool isUnique = true;
+                foreach (var d in datagrams)
+                {
+                    if (d.packetId == datagram.packetId)
+                    {
+                        isUnique = false;
+                        break;
+                    }
+                }
+
+                if (isUnique)
+                    datagrams.Add(datagram);
+            }
         }
 
         public List<Datagram> GetDatagrams()

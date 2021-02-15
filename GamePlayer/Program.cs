@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GameNetwork
@@ -12,8 +13,11 @@ namespace GameNetwork
         static string host = "localhost"; //"44.234.72.181";
         static async Task Main(string[] args)
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken token = tokenSource.Token;
+
             Client client = new Client(host, port);
-            await Start(client, HandleServer, HandlePlayers);
+            await Start(client, HandleServer, HandlePlayers, token);
         }
 
         static async Task HandleServer(Datagram datagram)
@@ -47,10 +51,8 @@ namespace GameNetwork
             }
         }
 
-        public static async Task Start(Client client, Func<Datagram, Task> servercb, Func<Datagram, Task> playercb, int delay = 0)
+        public static async Task Start(Client client, Func<Datagram, Task> servercb, Func<Datagram, Task> playercb, CancellationToken token)
         {
-            await Task.Delay(delay);
-
             try
             {
                 await client.Start();
@@ -65,6 +67,12 @@ namespace GameNetwork
                 while (true)
                 {
                     await Task.Delay(50); // wait for 20 pps roughly
+
+                    if (token.IsCancellationRequested)
+                    {
+                        client.unreliable.Shutdown();
+                        token.ThrowIfCancellationRequested();
+                    }
 
                     // loop through the server messages
                     var server = client.players[0];
