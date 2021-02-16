@@ -49,7 +49,27 @@ namespace GameNetwork
                     NetPlayer player;
                     if (!server.players.TryGetValue(key, out player)) continue;
 
-                    if (player.shouldDrop) server.players.Remove(player.id);
+                    if (player.shouldDrop)
+                    {
+                        server.players.Remove(player.id);
+                        foreach (var area in gameAreas.Values)
+                        {
+                            if (area.Contains(player.id))
+                            {
+                                area.Remove(player.id);
+                                foreach (var id in area)
+                                {
+                                    NetPlayer np;
+                                    if (server.players.TryGetValue(id, out np))
+                                    {
+                                        Message msg = new Message(Comm.Quit);
+                                        msg.AddUShort(player.id);
+                                        await np.Write(msg);
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     await player.SendReliables();
 
