@@ -93,5 +93,14 @@ namespace GameNetwork
         {
             await players[toId].Write(msg, id, isReliable);
         }
+
+        public async Task WritePlayers(Message msg, bool isReliable = true)
+        {
+            foreach (var player in players.Values)
+            {
+                if (player.id != 0)
+                    await player.Write(msg, id, isReliable);
+            }
+        }
     }
 }
