@@ -28,16 +28,16 @@ namespace GameNetwork
 
         void Setup ()
         {
-            if (isClient) udp.AllowNatTraversal(true);
+            //if (isClient) udp.AllowNatTraversal(true);
             udp.DontFragment = true;
             udp.Client.ReceiveBufferSize = 1024;
 
-            if (isClient)
+            /*if (isClient)
                 udp.Client.IOControl(
                     (IOControlCode) (-1744830452),
                     new byte[] { 0, 0, 0, 0 },
                     null
-            );
+            );*/
         }
 
         public async Task Read(Func<IPEndPoint, Datagram, Task> cb = null)
