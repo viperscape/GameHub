@@ -10,14 +10,21 @@ namespace GameNetwork
     class Program
     {
         static int port = 7070;
-        static string host = "localhost"; //"44.234.72.181";
+        static string host = "44.234.72.181";
         static async Task Main(string[] args)
         {
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             CancellationToken token = tokenSource.Token;
 
             Client client = new Client(host, port);
-            await Start(client, HandleServer, HandlePlayers, token);
+            _ = Start(client, HandleServer, HandlePlayers, token);
+
+            Message msg = new Message(Comm.JoinGameArea);
+            msg.AddString("test");
+            msg.AddString(client.localIP);
+            await client.WriteServer(msg);
+
+            while (true) { }
         }
 
         static async Task HandleServer(Datagram datagram)
@@ -96,9 +103,10 @@ namespace GameNetwork
                         {
                             ushort id = msg.GetUShort();
                             string address = msg.GetString();
+                            string altAddress = msg.GetString();
                             int port = msg.GetInt();
-                            Console.WriteLine("udp endpoint {0} {1} {2}", id, address, port);
-                            client.AddPeer(id, address, port);
+                            Console.WriteLine("udp endpoint {0} {1}, {2} : {3}", id, address, altAddress, port);
+                            client.AddPeer(id, address, port, altAddress);
                         }
 
                         await servercb(datagram);

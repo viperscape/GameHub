@@ -31,6 +31,8 @@ namespace GameNetwork
         int MAX_DATAGRAMS = 100; // max datagrams per queue
         int RELIABLE_TTL = 800; // max time in ms a reliable should wait before starting over as a new datagram
 
+        public string altIP;
+
         public NetPlayer(ushort id_, IPEndPoint endpoint_, Unreliable unreliable_)
         {
             id = id_;
@@ -58,8 +60,18 @@ namespace GameNetwork
 
                     if (stopwatch.ElapsedMilliseconds - lastSeen > 5000)
                     {
-                        shouldDrop = true;
-                        break;
+                        if (altIP == null)
+                        {
+                            shouldDrop = true;
+                            break;
+                        }
+                        else 
+                        { // try and swap in the alt address (inter LAN scenario)
+                            IPAddress ip = IPAddress.Parse(altIP);
+                            endpoint = new IPEndPoint(ip, endpoint.Port);
+                            altIP = null;
+                            ResetStats();
+                        }
                     }
                 }
 

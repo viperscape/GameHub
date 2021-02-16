@@ -18,6 +18,8 @@ namespace GameNetwork
         public string uuid = Guid.NewGuid().ToString();
         public ushort id; // network player session id
 
+        public string localIP;
+
         public Client (string host, int port)
         {
             players = new Dictionary<ushort, NetPlayer>();
@@ -36,6 +38,15 @@ namespace GameNetwork
             Console.WriteLine("Client socket destination {0}", ip);
 
             AddPeer(0, ip.ToString(), port);  // player id 0 is our server connection
+
+            // get our local address that is used to access the internet, we'll use this for fallback
+            // NOTE this is a temporary connection just to discover the ip
+            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+            {
+                socket.Connect(host, port);
+                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                localIP = endPoint.Address.ToString();
+            }
         }
 
         public async Task Start()
@@ -50,6 +61,8 @@ namespace GameNetwork
             if (players.TryGetValue(datagram.playerId, out np))
             {
                 await np.Enqueue(datagram);
+                if (np.endpoint != remote)
+                    np.endpoint = remote; // update endpoint if needed NOTE this is easily exploitable
             }
             else // find by endpoint instead FIXME this is because we are peering connections and the id isn't matching properly
             {
@@ -70,11 +83,12 @@ namespace GameNetwork
             }
         }
 
-        public void AddPeer(ushort id, string hostIP, int port)
+        public void AddPeer(ushort id, string hostIP, int port, string altIP = null)
         {
             IPAddress ip = IPAddress.Parse(hostIP);
             IPEndPoint ep = new IPEndPoint(ip, port);
             NetPlayer np = new NetPlayer(id, ep, unreliable);
+            np.altIP = altIP;
             if (players.ContainsKey(id)) // already known player, maybe reconnecting from new endpoint
             {
                 players[id].ResetStats();

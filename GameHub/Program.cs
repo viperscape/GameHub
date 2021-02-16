@@ -108,6 +108,8 @@ namespace GameNetwork
                         else if (msg.kind == Comm.JoinGameArea)
                         {
                             string area = msg.GetString();
+                            string localIP = msg.GetString();
+                            player.altIP = localIP;
 
                             Message msg_;
                             if (player.id == 0)
@@ -138,6 +140,7 @@ namespace GameNetwork
                                         {
                                             msg_.AddUShort(p.id);
                                             msg_.AddString(p.endpoint.Address.ToString());
+                                            msg_.AddString(p.altIP);
                                             msg_.AddInt(p.endpoint.Port);
                                             await player.Write(msg_);
                                         } // we should dump players without established udp endpoints
@@ -147,6 +150,7 @@ namespace GameNetwork
                                             msg_ = new Message(Comm.BrokerNewMember);
                                             msg_.AddUShort(player.id);
                                             msg_.AddString(player.endpoint.Address.ToString());
+                                            msg_.AddString(player.altIP);
                                             msg_.AddInt(player.endpoint.Port);
                                             await p.Write(msg_);
                                         }
