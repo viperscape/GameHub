@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GameNetwork
 {
-    class NetPlayer
+    public class NetPlayer
     {
         ConcurrentBag<Datagram> datagrams = new ConcurrentBag<Datagram>();
         ConcurrentDictionary<uint, Datagram> ackGrams = new ConcurrentDictionary<uint, Datagram>();
@@ -56,7 +56,7 @@ namespace GameNetwork
                     rangeTime = stopwatch.ElapsedMilliseconds;
                     pingLoss = 0;
                     
-                    Console.WriteLine("packet loss per second: {0}% {1}", ((float)packetLoss/4) * 100, endpoint.ToString());
+                    //Console.WriteLine("packet loss per second: {0}% {1}", ((float)packetLoss/4) * 100, endpoint.ToString());
 
                     if (stopwatch.ElapsedMilliseconds - lastSeen > 5000)
                     {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GameNetwork
 {
-    class Unreliable
+    public class Unreliable
     {
         UdpClient udp;
         bool isClient;

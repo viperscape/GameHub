@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace GameNetwork
 {
-    class Client
+    public class Client
     {
         public Dictionary<ushort, NetPlayer> players;
         public Stopwatch stopwatch { get; private set; }

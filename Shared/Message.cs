@@ -8,7 +8,7 @@ namespace GameNetwork
     ///  packable message for serializing to bytes
     ///  TODO consider builder pattern
     /// </summary>
-    class Message
+    public class Message
     {
         public ushort kind { get; }
         List<byte> payload;
