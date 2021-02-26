@@ -94,12 +94,6 @@ namespace GameNetwork
                         {
                             player.uuid = msg.GetString();
                         }
-                        else if (msg.kind == Comm.Ping)
-                        {
-                            Message msg_ = new Message(Comm.Pong);
-                            msg_.AddInt(msg.GetInt());
-                            await player.Write(msg_);
-                        }
                         else if (msg.kind == Comm.RequestGameAreas)
                         {
                             Message msg_ = GetRawGameAreas();
@@ -116,7 +110,6 @@ namespace GameNetwork
                             {
                                 msg_ = new Message(Comm.JoinGameArea);
                                 msg.AddBool(false);
-                                msg.AddString("Invalid player id");
                                 await player.Write(msg_);
                                 continue;
                             }
@@ -126,8 +119,7 @@ namespace GameNetwork
                             await player.Write(msg_);
 
                             List<ushort> ids;
-                            gameAreas.TryGetValue(area, out ids);
-                            if (ids != null)
+                            if (gameAreas.TryGetValue(area, out ids))
                             {
                                 foreach (var id in ids)
                                 {
