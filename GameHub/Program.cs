@@ -36,6 +36,8 @@ namespace GameNetwork
         {
             while (true)
             {
+                await Task.Delay(50);
+
                 //Console.Write(".");
 
                 // loop through connected players messages
@@ -161,7 +163,6 @@ namespace GameNetwork
                     }
                 }
 
-                await Task.Delay(10);
             }
         }
     }
