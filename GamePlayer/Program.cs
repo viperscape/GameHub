@@ -16,7 +16,7 @@ namespace GameNetwork
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             CancellationToken token = tokenSource.Token;
 
-            Client client = new Client(host, port);
+            Client client = new Client(host, port, token);
             _ = Start(client, HandleServer, HandlePlayers, token);
 
             Message msg = new Message(Comm.JoinGameArea);
@@ -24,7 +24,15 @@ namespace GameNetwork
             msg.AddString(client.localIP);
             await client.WriteServer(msg);
 
-            while (true) { }
+            int c = 0;
+            while (true)
+            {
+                c++;
+                msg = new Message(Comm.Text);
+                msg.AddString(c.ToString());
+                //await client.WritePlayers(msg);
+                //await Task.Delay(33);
+            }
         }
 
         static async Task HandleServer(Datagram datagram)
@@ -47,7 +55,7 @@ namespace GameNetwork
             }
         }
 
-            static async Task HandlePlayers(Datagram datagram)
+        static async Task HandlePlayers(Datagram datagram)
         {
             Message msg = new Message(datagram.data);
             if (msg.kind == Comm.Text)
@@ -78,7 +86,7 @@ namespace GameNetwork
                     if (token.IsCancellationRequested)
                     {
                         client.unreliable.Shutdown();
-                        token.ThrowIfCancellationRequested();
+                        break;
                     }
 
                     // loop through the server messages
@@ -96,7 +104,7 @@ namespace GameNetwork
                             if (client.id == 0) // only change if we never had an id
                             {
                                 client.id = msg.GetUShort();
-                                Console.WriteLine("recv id {0}", client.id);
+                                //Console.WriteLine("recv id {0}", client.id);
                             }
                         }
                         else if (msg.kind == Comm.BrokerNewMember)
@@ -105,7 +113,7 @@ namespace GameNetwork
                             string address = msg.GetString();
                             string altAddress = msg.GetString();
                             int port = msg.GetInt();
-                            Console.WriteLine("udp endpoint {0} {1}, {2} : {3}", id, address, altAddress, port);
+                            //Console.WriteLine("udp endpoint {0} {1}, {2} : {3}", id, address, altAddress, port);
                             client.AddPeer(id, address, port, altAddress);
                         }
 
@@ -115,7 +123,7 @@ namespace GameNetwork
 
 
                     // loop through connected players messages
-                    if (client.players.Count < 2) continue;
+                    if (client.players.Count < 2) continue; // first player is technically the broker server connection
                     ushort[] player_keys = new ushort[client.players.Keys.Count];
                     client.players.Keys.CopyTo(player_keys, 0);
                     foreach (var key in player_keys)
@@ -142,6 +150,8 @@ namespace GameNetwork
                         }
                     }
                 }
+
+                token.ThrowIfCancellationRequested();
             }
             catch (Exception e)
             {

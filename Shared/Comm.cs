@@ -31,6 +31,9 @@ namespace GameNetwork
             Pickup = 18,
             RequestPlayerId = 19,
             AssignPlayerId = 20,
-            PlayerUuid = 21;
+            PlayerUuid = 21,
+
+            Shoot = 1000,
+            DetachHook = 1001;
     }
 }

@@ -19,11 +19,13 @@ namespace GameNetwork
         public ushort id; // network player session id
 
         public string localIP;
+        CancellationToken token;
 
-        public Client (string host, int port)
+        public Client (string host, int port, CancellationToken token_)
         {
             players = new Dictionary<ushort, NetPlayer>();
-            unreliable = new Unreliable();
+            token = token_;
+            unreliable = new Unreliable(token);
             stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -85,10 +87,12 @@ namespace GameNetwork
 
         public void AddPeer(ushort id, string hostIP, int port, string altIP = null)
         {
-            IPAddress ip = IPAddress.Parse(hostIP);
+            if (altIP == null) altIP = hostIP;
+
+            IPAddress ip = IPAddress.Parse(altIP);
             IPEndPoint ep = new IPEndPoint(ip, port);
             NetPlayer np = new NetPlayer(id, ep, unreliable);
-            np.altIP = altIP;
+            np.altIP = hostIP;
             if (players.ContainsKey(id)) // already known player, maybe reconnecting from new endpoint
             {
                 players[id].ResetStats();

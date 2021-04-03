@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GameNetwork
@@ -22,6 +23,7 @@ namespace GameNetwork
         public int pingLoss = 0;
         public int packetLoss { get; private set; } = 0;
         public uint lastSeen { get; private set; } = 0;
+        public int pingDrop = 50000;
         public bool shouldDrop = false;
 
         uint packetCount = 0; // outbound packet count, used for tracking
@@ -50,7 +52,9 @@ namespace GameNetwork
             {
                 await Task.Delay(250);
 
-                if (stopwatch.ElapsedMilliseconds - rangeTime > 5000)
+                if (unreliable.token != null && unreliable.token.IsCancellationRequested) break;
+
+                if (stopwatch.ElapsedMilliseconds - rangeTime > pingDrop)
                 {
                     packetLoss = pingLoss / 5; // average over 5 seconds
                     rangeTime = stopwatch.ElapsedMilliseconds;
@@ -58,7 +62,7 @@ namespace GameNetwork
                     
                     //Console.WriteLine("packet loss per second: {0}% {1}", ((float)packetLoss/4) * 100, endpoint.ToString());
 
-                    if (stopwatch.ElapsedMilliseconds - lastSeen > 5000)
+                    if (stopwatch.ElapsedMilliseconds - lastSeen > pingDrop)
                     {
                         if (altIP == null)
                         {

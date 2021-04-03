@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GameNetwork
@@ -10,6 +11,7 @@ namespace GameNetwork
     {
         UdpClient udp;
         bool isClient;
+        public CancellationToken token { get; private set; }
 
         public Unreliable(int port = 7070)
         {
@@ -19,9 +21,10 @@ namespace GameNetwork
             Setup();
         }
 
-        public Unreliable()
+        public Unreliable(CancellationToken token_)
         {
             isClient = true;
+            token = token_;
             udp = new UdpClient();
             Setup();
         }
@@ -44,6 +47,8 @@ namespace GameNetwork
         {
             while (true)
             {
+                if (token.IsCancellationRequested) break;
+
                 if (udp.Client == null) break; // socket forcefully closed?
                 if (!udp.Client.IsBound) continue; // not yet ready to read?
 
