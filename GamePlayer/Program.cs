@@ -10,7 +10,7 @@ namespace GameNetwork
     class Program
     {
         static int port = 7070;
-        static string host = "44.234.72.181";
+        static string host = "broker.1kwgames.com";
         static async Task Main(string[] args)
         {
             CancellationTokenSource tokenSource = new CancellationTokenSource();
